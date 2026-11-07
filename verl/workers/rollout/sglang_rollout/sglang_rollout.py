@@ -453,7 +453,7 @@ class SGLangRollout(BaseRollout):
             params = StdioServerParameters(
                 command=config.command,
                 args=config.args if hasattr(config, "args") else [],
-                env={e: os.environ.get(e) for e in config.env} if hasattr(config, "env") else {},
+                env={e: os.environ[e] for e in config.env if e in os.environ} if hasattr(config, "env") else {},
             )
             max_retries = config.get("max_retries", 5)
             delay_between_retries = config.get("delay_between_retries", 1)  # in seconds
@@ -469,6 +469,9 @@ class SGLangRollout(BaseRollout):
                             # The list_tools operation inherits the timeout from ClientSession
                             response = await session.list_tools()
                             for tool in response.tools:
+                                if (params.command.endswith("serper-mcp") and tool.name == "scrape"
+                                        and ((params.env or {}).get("SERPER_BASE_URL") or "https://google.serper.dev").rstrip("/") != "https://google.serper.dev"):
+                                    continue
                                 tool_schema_dict = {"type": "function", "function": {"name": tool.name, "description": tool.description, "parameters": tool.inputSchema}}
                                 tool_schema = OpenAIFunctionToolSchema.model_validate(tool_schema_dict)
                                 tools_schema.append(tool_schema)

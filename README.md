@@ -215,7 +215,24 @@ npm install serper-search-scrape-mcp-server
 cd /workspace/MATPO 
 ```
 
-**Step 6**: Test the environment setup and run single-node training. Train a Qwen3-4B model with MATPO on the MuSiQue dataset and evaluate on the GAIA-text datasets. 
+### Optional Serper-compatible endpoint
+
+Support any Serper.dev-compatible endpoint (like litescrape.com, serpbase.dev, serpensapi.org, and others)
+
+Set `SERPER_BASE_URL` in the launch environment to a base URL without `/search`,
+and use the chosen provider's key as `SERPER_API_KEY`. The example MCP tool
+configurations forward the base URL to the `serper-mcp` subprocess. Leaving it
+unset or empty retains the server's default Serper endpoint.
+
+This requires an endpoint-aware build of `serper-search-scrape-mcp-server`:
+its client must read `SERPER_BASE_URL`. Install that build in the existing
+shared Node environment (or configure its `serper-mcp` command path) first;
+forwarding the variable does not add endpoint support to an older server
+that ignores it. This override configures search only. The MCP server's
+separate scraping host is unchanged; its `scrape` tool is disabled with an
+alternate search base to avoid sending another provider's key to that host.
+
+**Step 6**: Test the environment setup and run single-node training. Train a Qwen3-4B model with MATPO on the MuSiQue dataset and evaluate on the GAIA-text datasets.
 
 Remember to adjust the directory paths in `examples/sglang_multiturn/launch.sh` accordingly, e.g. `YOUR_NODEJS_HOME=/workspace/nodejs/node-v24.2.0-linux-x64` and `YOUR_NODE_SHARED=/workspace/nodejs/node-shared/node_modules`.
 
@@ -367,7 +384,7 @@ tools:
     config:
       command: "serper-mcp"
       args: []
-      env: ["SERPER_API_KEY", "HTTPS_PROXY"]
+      env: ["SERPER_API_KEY", "SERPER_BASE_URL", "HTTPS_PROXY"]
       server_name: "search_and_scrape_webpage"
     tool_schema:
       type: "mcp"
@@ -424,7 +441,7 @@ tools:
     config:
       command: "serper-mcp"
       args: []
-      env: ["SERPER_API_KEY", "HTTPS_PROXY"]
+      env: ["SERPER_API_KEY", "SERPER_BASE_URL", "HTTPS_PROXY"]
       server_name: "search_and_scrape_webpage"
     tool_schema:
       type: "mcp"

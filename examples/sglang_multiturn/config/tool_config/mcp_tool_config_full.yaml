@@ -3,7 +3,7 @@ tools:
     config:
       command: "serper-mcp"
       args: []
-      env: ["SERPER_API_KEY", "HTTPS_PROXY"]
+      env: ["SERPER_API_KEY", "SERPER_BASE_URL", "HTTPS_PROXY"]
       server_name: "search_and_scrape_webpage"
     tool_schema:
       type: "mcp"

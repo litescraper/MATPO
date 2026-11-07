@@ -38,7 +38,7 @@ async def get_mcp_tools_schema(config: Dict[str, Any]) -> List[Dict[str, Any]]:
     params = StdioServerParameters(
         command=config["command"],
         args=config.get("args", []),
-        env={e: os.environ.get(e) for e in config["env"]} if "env" in config else {},
+        env={e: os.environ[e] for e in config["env"] if e in os.environ} if "env" in config else {},
     )
     max_retries = config.get("max_retries", 5)
     delay_between_retries = config.get("delay_between_retries", 1)
@@ -51,6 +51,9 @@ async def get_mcp_tools_schema(config: Dict[str, Any]) -> List[Dict[str, Any]]:
                     await session.initialize()
                     response = await session.list_tools()
                     for tool in response.tools:
+                        if (params.command.endswith("serper-mcp") and tool.name == "scrape"
+                                and ((params.env or {}).get("SERPER_BASE_URL") or "https://google.serper.dev").rstrip("/") != "https://google.serper.dev"):
+                            continue
                         tools_schema.append(
                             {
                                 "name": tool.name,

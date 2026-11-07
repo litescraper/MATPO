@@ -71,7 +71,7 @@ class MCPTool(BaseTool):
             self.params = StdioServerParameters(
                 command=config["command"],
                 args=config.get("args",[]),
-                env={e: os.environ.get(e) for e in config["env"]} if "env" in config.keys() else {},
+                env={e: os.environ[e] for e in config["env"] if e in os.environ} if "env" in config.keys() else {},
             )
 
     def get_openai_tool_schema(self) -> OpenAIFunctionToolSchema:
@@ -91,6 +91,11 @@ class MCPTool(BaseTool):
     async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> Tuple[str, float, dict]:
         if self.is_agent_tool:
             raise ValueError("Sub-agent execution unexpectly started!")
+
+        # The Serper MCP scrape host is separate from its search base URL.
+        if (self.params.command.endswith("serper-mcp") and self.name == "scrape"
+                and ((self.params.env or {}).get("SERPER_BASE_URL") or "https://google.serper.dev").rstrip("/") != "https://google.serper.dev"):
+            return "Scraping is unavailable with an alternate Serper search base; its separate scrape endpoint is unchanged.", 0.0, {}
 
         response = ""
 
